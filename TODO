@@ -1,0 +1,26 @@
+
+- - - - - - - FIX - - - - - - - -
+
+
+- - - - - - GAME MECHANICS - - - - - -
+  - don't kill waves that hit things
+  - partially damage dirt
+  - palette for adding dirt
+  - system for creating waves
+
+
+- - - - - - - PLAYTESTING - - - - - - - -
+
+
+- - - - - - POLISH - - - - - -
+  - make sure touch events work like in SidewalkEmpire
+  - Remove main menu
+  - Reset should pass through lobby again
+  - switch to fullscreen canvas component
+  - favicon
+  - heroku app
+  - rune integration
+
+
+- - - - - - STRETCH - - - - - -
+  - detect sideways screen and rotate grid rendering
