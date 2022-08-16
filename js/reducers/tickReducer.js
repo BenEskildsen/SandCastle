@@ -220,42 +220,29 @@ const updateBallistics = (game): void => {
       collidesWith(game, ballistic, ballistic.blockingTypes)
       .filter(e => e.playerID != ballistic.playerID);
     let inRadius = false;
-    if (ballistic.targetID != null && ballistic.warhead != null) {
-      const target = game.entities[ballistic.targetID];
-      if (target != null) {
-        if (Math.abs(dist(ballistic.position, target.position)) <= 4) {
-          inRadius = true;
-        }
-      }
-    }
 
     if (collisions.length > 0 || inRadius) {
-      if (ballistic.missRate == null ||
-        (ballistic.missRate != null && Math.random() > ballistic.missRate)
-      ) {
-        const alreadyDamaged = {};
-        collisions.forEach(e => {
-          if (alreadyDamaged[e.id]) return;
-          alreadyDamaged[e.id] = true;
-          if (ballistic.PIERCING && e.COLLECTABLE) {
-            ballistic.hp -= e.hp / 20;
-          }
-          if (e.type == 'BASE') {
-            game.miniTicker = {
-              time: 3000,
-              max: 3000,
-              message: 'BASE HIT',
-            };
-          }
-          dealDamageToEntity(game, e, ballistic.damage);
-        });
-
-
-        if (!ballistic.PIERCING || ballistic.hp <= 0) {
-          queueAction(game, ballistic, makeAction(game, ballistic, 'DIE'));
+      const alreadyDamaged = {};
+      collisions.forEach(e => {
+        if (alreadyDamaged[e.id]) return;
+        alreadyDamaged[e.id] = true;
+        if (e.type == 'BASE') {
+          game.miniTicker = {
+            time: 3000,
+            max: 3000,
+            message: 'BASE HIT',
+          };
         }
+        dealDamageToEntity(game, e, ballistic.damage);
+      });
 
-        continue;
+
+      if (!ballistic.PIERCING || ballistic.hp <= 0) {
+        ballistic.hp = 10;
+        // queueAction(game, ballistic, makeAction(game, ballistic, 'DIE'));
+        ballistic.velocity = 0;
+        ballistic.initialPosition = ballistic.ballisticPosition;
+        ballistic.age = 0;
       }
     }
 

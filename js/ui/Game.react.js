@@ -12,7 +12,7 @@ const {initMouseControlsSystem} = require('../systems/mouseControlsSystem');
 const {initGameOverSystem} = require('../systems/gameOverSystem');
 const {initSpriteSheetSystem} = require('../systems/spriteSheetSystem');
 const {initRainSystem} = require('../systems/rainSystem');
-const {initMonsterAttackSystem} = require('../systems/monsterAttackSystem');
+const {initWaveSystem} = require('../systems/waveSystem');
 const {initPheromoneWorkerSystem} = require('../systems/pheromoneWorkerSystem');
 const {
   initKeyboardControlsSystem
@@ -61,13 +61,13 @@ function Game(props: Props): React.Node {
     // initSpriteSheetSystem(store);
     const unSubGameOver = initGameOverSystem(store);
     initPheromoneWorkerSystem(store);
-    // const unSubMonsterAttacks = initMonsterAttackSystem(store);
+    const unSubWaves = initWaveSystem(store);
     // initRainSystem(store);
     // initUpgradeSystem(store);
     registerHotkeys(dispatch);
     return () => {
       unSubGameOver();
-      // unSubMonsterAttacks();
+      unSubWaves();
     }
   }, [gameID]);
 

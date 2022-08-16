@@ -3415,39 +3415,28 @@ var updateBallistics = function updateBallistics(game) {
       return e.playerID != ballistic.playerID;
     });
     var inRadius = false;
-    if (ballistic.targetID != null && ballistic.warhead != null) {
-      var target = game.entities[ballistic.targetID];
-      if (target != null) {
-        if (Math.abs(dist(ballistic.position, target.position)) <= 4) {
-          inRadius = true;
-        }
-      }
-    }
 
     if (collisions.length > 0 || inRadius) {
-      if (ballistic.missRate == null || ballistic.missRate != null && Math.random() > ballistic.missRate) {
-        var alreadyDamaged = {};
-        collisions.forEach(function (e) {
-          if (alreadyDamaged[e.id]) return;
-          alreadyDamaged[e.id] = true;
-          if (ballistic.PIERCING && e.COLLECTABLE) {
-            ballistic.hp -= e.hp / 20;
-          }
-          if (e.type == 'BASE') {
-            game.miniTicker = {
-              time: 3000,
-              max: 3000,
-              message: 'BASE HIT'
-            };
-          }
-          dealDamageToEntity(game, e, ballistic.damage);
-        });
-
-        if (!ballistic.PIERCING || ballistic.hp <= 0) {
-          queueAction(game, ballistic, makeAction(game, ballistic, 'DIE'));
+      var alreadyDamaged = {};
+      collisions.forEach(function (e) {
+        if (alreadyDamaged[e.id]) return;
+        alreadyDamaged[e.id] = true;
+        if (e.type == 'BASE') {
+          game.miniTicker = {
+            time: 3000,
+            max: 3000,
+            message: 'BASE HIT'
+          };
         }
+        dealDamageToEntity(game, e, ballistic.damage);
+      });
 
-        return 'continue';
+      if (!ballistic.PIERCING || ballistic.hp <= 0) {
+        ballistic.hp = 10;
+        // queueAction(game, ballistic, makeAction(game, ballistic, 'DIE'));
+        ballistic.velocity = 0;
+        ballistic.initialPosition = ballistic.ballisticPosition;
+        ballistic.age = 0;
       }
     }
 
@@ -9368,74 +9357,6 @@ module.exports = { initKeyboardControlsSystem: initKeyboardControlsSystem };
 },{}],61:[function(require,module,exports){
 'use strict';
 
-var _require = require('../utils/stochastic'),
-    randomIn = _require.randomIn,
-    normalIn = _require.normalIn,
-    oneOf = _require.oneOf;
-
-var globalConfig = require('../config');
-
-var _require2 = require('../entities/registry'),
-    Entities = _require2.Entities;
-
-var initMonsterAttackSystem = function initMonsterAttackSystem(store) {
-  var dispatch = store.dispatch;
-
-  var time = -1;
-  return store.subscribe(function () {
-    var state = store.getState();
-    var game = state.game;
-
-    if (!game) return;
-    if (game.time == time) return;
-    time = game.time;
-
-    if (game.pauseMonsters) {
-      return;
-    }
-
-    var gameSeconds = game.totalGameTime / 1000;
-
-    var spawnRate = Math.max(5, Math.round(100 - game.score));
-
-    if (game.time > 0 && game.time % spawnRate == 0) {
-      var position = { x: 0, y: 0 };
-      if (Math.random() < 0.5) {
-        position.x = oneOf([0, game.gridWidth - 1]);
-        position.y = randomIn(0, game.gridHeight - 1);
-      } else {
-        position.x = randomIn(0, game.gridWidth - 1);
-        position.y = oneOf([0, game.gridHeight - 1]);
-      }
-      var monster = Entities.MONSTER.make(game, position, 2);
-      dispatch({ type: 'CREATE_ENTITY', entity: monster });
-    }
-  });
-};
-
-function doWaveOver(dispatch, game, missileFrequency) {
-  if (game.inWave) {
-    dispatch({ type: 'SET_IN_WAVE', inWave: false });
-    dispatch({ type: 'SET_WAVE_INDEX', waveIndex: game.waveIndex + 1 });
-    dispatch({ type: 'SET_MISSILE_FREQUENCY', missileFrequency: missileFrequency });
-  }
-}
-
-function doStartWave(dispatch, game, missileFrequency) {
-  if (!game.inWave) {
-    dispatch({ type: 'SET_IN_WAVE', inWave: true });
-    dispatch({ type: 'SET_MISSILE_FREQUENCY', missileFrequency: missileFrequency });
-    dispatch({ type: 'SET_TICKER_MESSAGE',
-      time: 4000,
-      message: 'WAVE OF MISSILES INCOMING'
-    });
-  }
-}
-
-module.exports = { initMonsterAttackSystem: initMonsterAttackSystem };
-},{"../config":1,"../entities/registry":15,"../utils/stochastic":101}],62:[function(require,module,exports){
-'use strict';
-
 var _require = require('../config'),
     config = _require.config;
 
@@ -9666,7 +9587,7 @@ var getMousePixel = function getMousePixel(ev, canvas) {
 };
 
 module.exports = { initMouseControlsSystem: initMouseControlsSystem };
-},{"../config":1,"../utils/gridHelpers":98,"../utils/helpers":99,"../utils/vectors":102}],63:[function(require,module,exports){
+},{"../config":1,"../utils/gridHelpers":98,"../utils/helpers":99,"../utils/vectors":102}],62:[function(require,module,exports){
 'use strict';
 
 var _require = require('../utils/vectors'),
@@ -9759,7 +9680,7 @@ var initPheromoneWorkerSystem = function initPheromoneWorkerSystem(store) {
 };
 
 module.exports = { initPheromoneWorkerSystem: initPheromoneWorkerSystem };
-},{"../entities/registry":15,"../utils/helpers":99,"../utils/vectors":102}],64:[function(require,module,exports){
+},{"../entities/registry":15,"../utils/helpers":99,"../utils/vectors":102}],63:[function(require,module,exports){
 'use strict';
 
 var _require = require('../utils/stochastic'),
@@ -9809,7 +9730,7 @@ var initRainSystem = function initRainSystem(store) {
 };
 
 module.exports = { initRainSystem: initRainSystem };
-},{"../config":1,"../simulation/pheromones":56,"../utils/stochastic":101}],65:[function(require,module,exports){
+},{"../config":1,"../simulation/pheromones":56,"../utils/stochastic":101}],64:[function(require,module,exports){
 'use strict';
 
 var _require = require('../config'),
@@ -9844,7 +9765,54 @@ var loadSprite = function loadSprite(dispatch, state, name, src) {
 };
 
 module.exports = { initSpriteSheetSystem: initSpriteSheetSystem };
-},{"../config":1}],66:[function(require,module,exports){
+},{"../config":1}],65:[function(require,module,exports){
+'use strict';
+
+var _require = require('../utils/stochastic'),
+    randomIn = _require.randomIn,
+    normalIn = _require.normalIn,
+    oneOf = _require.oneOf;
+
+var globalConfig = require('../config');
+
+var _require2 = require('../entities/registry'),
+    Entities = _require2.Entities;
+
+var initWaveSystem = function initWaveSystem(store) {
+  var dispatch = store.dispatch;
+
+  var time = -1;
+  return store.subscribe(function () {
+    var state = store.getState();
+    var game = state.game;
+
+    if (!game) return;
+    if (game.time == time) return;
+    time = game.time;
+
+    if (game.pauseMonsters) {
+      return;
+    }
+
+    var gameSeconds = game.totalGameTime / 1000;
+
+    var spawnRate = 350;
+
+    if (game.time % spawnRate == 0) {
+      var velocity = normalIn(20, 90);
+      for (var x = 0; x < game.gridWidth; x++) {
+        var position = { x: x, y: game.gridHeight - 1 };
+        velocity += randomIn(0, 10) - 5;
+        velocity = Math.max(velocity, 0);
+        var wave = Entities.WAVE.make(game, position, velocity);
+        dispatch({ type: 'CREATE_ENTITY', entity: wave });
+      }
+    }
+  });
+};
+
+module.exports = { initWaveSystem: initWaveSystem };
+},{"../config":1,"../entities/registry":15,"../utils/stochastic":101}],66:[function(require,module,exports){
 'use strict';
 
 var levels = require('../levels/levels');
@@ -11003,8 +10971,8 @@ var _require4 = require('../systems/spriteSheetSystem'),
 var _require5 = require('../systems/rainSystem'),
     initRainSystem = _require5.initRainSystem;
 
-var _require6 = require('../systems/monsterAttackSystem'),
-    initMonsterAttackSystem = _require6.initMonsterAttackSystem;
+var _require6 = require('../systems/waveSystem'),
+    initWaveSystem = _require6.initWaveSystem;
 
 var _require7 = require('../systems/pheromoneWorkerSystem'),
     initPheromoneWorkerSystem = _require7.initPheromoneWorkerSystem;
@@ -11071,13 +11039,13 @@ function Game(props) {
     // initSpriteSheetSystem(store);
     var unSubGameOver = initGameOverSystem(store);
     initPheromoneWorkerSystem(store);
-    // const unSubMonsterAttacks = initMonsterAttackSystem(store);
+    var unSubWaves = initWaveSystem(store);
     // initRainSystem(store);
     // initUpgradeSystem(store);
     registerHotkeys(dispatch);
     return function () {
       unSubGameOver();
-      // unSubMonsterAttacks();
+      unSubWaves();
     };
   }, [gameID]);
 
@@ -11327,7 +11295,7 @@ function MiniTicker(props) {
 }
 
 module.exports = Game;
-},{"../config":1,"../render/render":38,"../selectors/misc":45,"../simulation/actionQueue":51,"../systems/gameOverSystem":59,"../systems/keyboardControlsSystem":60,"../systems/monsterAttackSystem":61,"../systems/mouseControlsSystem":62,"../systems/pheromoneWorkerSystem":63,"../systems/rainSystem":64,"../systems/spriteSheetSystem":65,"../thunks/mouseInteractions":67,"../utils/gridHelpers":98,"../utils/helpers":99,"../utils/vectors":102,"./BottomBar.react":68,"./Canvas.react":69,"./Components/Button.react":71,"./Components/Checkbox.react":72,"./Components/RadioPicker.react":78,"./ExperimentalSidebar.react":80,"./TopBar.react":87,"react":140}],82:[function(require,module,exports){
+},{"../config":1,"../render/render":38,"../selectors/misc":45,"../simulation/actionQueue":51,"../systems/gameOverSystem":59,"../systems/keyboardControlsSystem":60,"../systems/mouseControlsSystem":61,"../systems/pheromoneWorkerSystem":62,"../systems/rainSystem":63,"../systems/spriteSheetSystem":64,"../systems/waveSystem":65,"../thunks/mouseInteractions":67,"../utils/gridHelpers":98,"../utils/helpers":99,"../utils/vectors":102,"./BottomBar.react":68,"./Canvas.react":69,"./Components/Button.react":71,"./Components/Checkbox.react":72,"./Components/RadioPicker.react":78,"./ExperimentalSidebar.react":80,"./TopBar.react":87,"react":140}],82:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -12616,7 +12584,7 @@ function createEntityOptions(game, editor, setEditor) {
 }
 
 module.exports = LevelEditor;
-},{"../config":1,"../entities/registry":15,"../render/render":38,"../systems/mouseControlsSystem":62,"../utils/vectors":102,"./components/Button.react":89,"./components/Checkbox.react":90,"./components/Divider.react":91,"./components/Dropdown.react":92,"./components/NumberField.react":95,"./components/Slider.react":97,"react":140}],84:[function(require,module,exports){
+},{"../config":1,"../entities/registry":15,"../render/render":38,"../systems/mouseControlsSystem":61,"../utils/vectors":102,"./components/Button.react":89,"./components/Checkbox.react":90,"./components/Divider.react":91,"./components/Dropdown.react":92,"./components/NumberField.react":95,"./components/Slider.react":97,"react":140}],84:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -13046,7 +13014,7 @@ function playLevel(store, levelName, setLoadingProgress, setIsLoaded) {
 }
 
 module.exports = Lobby;
-},{"../config":1,"../levels/levels":22,"../systems/spriteSheetSystem":65,"../thunks/levelThunks":66,"../ui/components/Modal.react":94,"../ui/components/QuitButton.react":96,"../utils/helpers":99,"./components/AudioWidget.react":88,"./components/Button.react":89,"./components/Checkbox.react":90,"./components/Divider.react":91,"./components/Dropdown.react":92,"axios":105,"react":140}],85:[function(require,module,exports){
+},{"../config":1,"../levels/levels":22,"../systems/spriteSheetSystem":64,"../thunks/levelThunks":66,"../ui/components/Modal.react":94,"../ui/components/QuitButton.react":96,"../utils/helpers":99,"./components/AudioWidget.react":88,"./components/Button.react":89,"./components/Checkbox.react":90,"./components/Divider.react":91,"./components/Dropdown.react":92,"axios":105,"react":140}],85:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
